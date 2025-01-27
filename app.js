@@ -8,7 +8,8 @@ const app=express();
 app.use(express.json());
 const port=3000;
 const secretKey="+8]'/[;.pl,12qaz`wsx345e[p;dcy\"gvrft7.;[8uhujio?nmkl7890-=";
-const mongourl="mongodb://localhost:27017/farmers-social-media";
+// const mongourl="mongodb://localhost:27017/farmers-social-media";
+const mongourl="mongodb+srv://lingeshv520:lingeshv2005@cluster0.yzegp.mongodb.net/farmers-social-media";
 
 mongoose.connect(mongourl).then(() => {
         console.log("MongoDB Connected...");
@@ -19,10 +20,9 @@ mongoose.connect(mongourl).then(() => {
 
 const userSchema=new mongoose.Schema({
     userId: {type:String, unique:true, required:true},
-    email: {type: String, unique: true ,default:""},
     username: {type: String, required: true, unique: true },
-    phone: {type: String, unique: true ,default:""},
-    password: {type: String, required: true }
+    password: {type: String, required: true },
+    lastLogin:{type:Date, default:Date.now},
 });
 const User=new mongoose.model("login",userSchema);
 
@@ -36,10 +36,10 @@ app.post("/api/signup",async (req,res)=>{
     if(existingUser){
         return res.status(400).json({message:"username already exists"});
     }
-
+    
     const hashedPassword=await bcrypt.hash(password,12);
 
-    const newUser =new User({
+    const newUser = new User({
         userId:uuidv4(),
         username,
         password:hashedPassword
@@ -107,18 +107,62 @@ const UserDetails=new mongoose.model("userDetails",userDetailsSchema);
 
 
 
-function authenticationToken(req,res,next){
 
-    const token =req.header("Authorization")?.split(" ")[1];
-    if(!token)return res.sendStatus(401).json({message:"null token"});
+const animalTypes=new mongoose.Schema({
+    animalName:{type:String},
+    total:{type:Number}
+});
 
-    jwt.verify(token,secretKey,(err,user)=>{
-        if(err) return res.status(403).json({message:"invalid token"});
-        
-        req.user=user;
-        next();
-    })
-}
+const userDetailsSchema=new mongoose.Schema({
+    userId: {type:String, unique:true, required:true},
+    email: {type: String, unique: true, required: true},
+    username: {type: String, required: true },
+    phone: {type: String, unique: true, required:true},
+    name: {type: String, required:true, },
+    location: {type:String, required:true},
+
+    userType: {type:String, default:"farmer", enum:["farmer","veterinarian"]},
+    animalTypes: [animalTypes],
+    profilePicture:{type:String,default:"avatar.svg"},
+    bio:{type:String,default:""},
+    dateOfBirth:{type:String, default:Date.now()},
+    gender:{type:String,default:"prefernottosay",enum:["male","female","other","prefernottosay"]},
+    verificationStatus:{type:String, default:false},
+    website:{type:String, default:""},
+    facebook:{type:String,default:""},
+    instagram:{type:String,default:""},
+    twitter:{type:String,default:""},
+    whatsapp:{type:String,default:""},
+    totalPosts:{type:Number,default:0},
+    totalLikes:{type:Number,default:0},
+    totalReposts:{type:Number,default:0},
+    isActive:{type:Boolean,default:true},
+    lastLogin:{type:Date,default:Date.now()},
+    createdAt:{type:Date,default:Date.now()},
+    updatedAt:{type:Date,default:Date.now()},
+});
+
+const UserDetails=new mongoose.model("userDetails",userDetailsSchema);
+
+app.put("/api/updateuserdetails/:userId",async (req,res)=>{
+    const {userId}=req.params;
+    const userDetails=req.body;
+    
+    const user=new User.findOne({userId});
+    if(!user){
+        return res.status(404).json({message:"User not found"});
+    }
+
+    const updatedUserDetails=UserDetails.findOneAndUpdate({
+        ...userDetails,
+        user:user[username],
+        userId:user[userId]
+    });
+
+    await updatedUserDetails.save();
+    return res.status(200).json({message:"user details updated successfully",userDetails:updatedUserDetails});
+    
+});
 
 
 
@@ -130,6 +174,7 @@ const postSchema=mongoose.Schema({
     content:{ type:String, required:true},
     images:{ type:[String]},
     videos:{ type:[String]},
+    isShortFormVideo:{type:Boolean, default:false},
     isRepostable:{ type:String, default:true},
 
     viewUsers:{ type:[String], default:{}},
@@ -147,9 +192,15 @@ const postSchema=mongoose.Schema({
 const Post=new mongoose.model("post",postSchema);
 
 app.post("/api/createpost",async (req,res)=>{
-    const {userId,postType,tags,content,images,videos,isRepostable}=req.body;
+    const {userId,postType,tags,content,images,videos,isShortFormVideo}=req.body;
     if(!userId || !postType || !content){
         return res.status(400).json({message:"User ID, post type, and content are required."})
+    }
+ 
+    const isRepostable=false;
+    if(isShortFormVideo === undefined || isShortFormVideo===false){
+        isShortFormVideo = false;
+        isRepostable = true;
     }
 
     const newPost=new Post({
@@ -160,7 +211,8 @@ app.post("/api/createpost",async (req,res)=>{
         content,
         images:images || [],
         videos:videos || [],
-        isRepostable:isRepostable !== undefined? isRepostable:true,
+        isShortFormVideo,
+        isRepostable,
     });
 
     await newPost.save();
@@ -254,6 +306,9 @@ app.put("/api/addview/:postId",async (res,req)=>{
 });
 
 
+
+
+
 const childCommentSchema=mongoose.Schema({
     commentId: { type: String, required: true, unique: true },
     content: { type: String, required: true },
@@ -309,7 +364,6 @@ app.post("/api/comment/:postId",async (req,res)=>{
 
 });
 
-
 app.post("/api/reply/:postId/:commentId",async (req,res)=>{
     const {postId,commentId}=req.params;
     const {content,commentedUserId}=req.body;
@@ -339,6 +393,29 @@ app.post("/api/reply/:postId/:commentId",async (req,res)=>{
 
 
 
+<<<<<<< HEAD
 // https://chatgpt.com/c/67970938-c5f8-8011-8490-0608c66fe94e
 
 
+=======
+
+
+
+
+
+
+
+function authenticationToken(req,res,next){
+
+    const token =req.header("Authorization")?.split(" ")[1];
+    if(!token)return res.sendStatus(401).json({message:"null token"});
+
+    jwt.verify(token,secretKey,(err,user)=>{
+        if(err) return res.status(403).json({message:"invalid token"});
+        
+        req.user=user;
+        next();
+    })
+}
+
+>>>>>>> bd8ef25d09b445d8ee5471b12d6276f71b7b028d
