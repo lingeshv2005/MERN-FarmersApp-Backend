@@ -1,6 +1,29 @@
 {
+  "name": "farmers-social-media-backend",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/lingeshv2005/farmers-social-media-backend#readme",
+  "bugs": {
+    "url": "https://github.com/lingeshv2005/farmers-social-media-backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lingeshv2005/farmers-social-media-backend.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "app.js",
+  "scripts": {
+    "start": "nodemon app",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
   "dependencies": {
+    "bcryptjs": "^2.4.3",
     "express": "^4.21.2",
-    "mongoose": "^8.9.5"
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5",
+    "nodemon": "^3.1.9",
+    "uuid": "^11.0.5"
   }
 }
