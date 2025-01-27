@@ -8,7 +8,8 @@ const app=express();
 app.use(express.json());
 const port=3000;
 const secretKey="+8]'/[;.pl,12qaz`wsx345e[p;dcy\"gvrft7.;[8uhujio?nmkl7890-=";
-const mongourl="mongodb://localhost:27017/farmers-social-media";
+// const mongourl="mongodb://localhost:27017/farmers-social-media";
+const mongourl="mongodb+srv://lingeshv520:lingeshv2005@cluster0.yzegp.mongodb.net/farmers-social-media";
 
 mongoose.connect(mongourl).then(() => {
         console.log("MongoDB Connected...");
@@ -20,7 +21,8 @@ mongoose.connect(mongourl).then(() => {
 const userSchema=new mongoose.Schema({
     userId: {type:String, unique:true, required:true},
     username: {type: String, required: true, unique: true },
-    password: {type: String, required: true }
+    password: {type: String, required: true },
+    lastLogin:{type:Date, default:Date.now},
 });
 const User=new mongoose.model("login",userSchema);
 
@@ -73,7 +75,7 @@ app.get("/api/login",async (req,res)=>{
 const animalTypes=new mongoose.Schema({
     animalName:{type:String},
     total:{type:Number}
-})
+});
 
 const userDetailsSchema=new mongoose.Schema({
     userId: {type:String, unique:true, required:true},
@@ -128,25 +130,6 @@ app.put("/api/updateuserdetails/:userId",async (req,res)=>{
 
 
 
-
-
-function authenticationToken(req,res,next){
-
-    const token =req.header("Authorization")?.split(" ")[1];
-    if(!token)return res.sendStatus(401).json({message:"null token"});
-
-    jwt.verify(token,secretKey,(err,user)=>{
-        if(err) return res.status(403).json({message:"invalid token"});
-        
-        req.user=user;
-        next();
-    })
-}
-
-
-
-
-
 const postSchema=mongoose.Schema({
     postId:{ type:String, required:true, unique:true},
     userId:{ type:String, required:true },
@@ -155,6 +138,7 @@ const postSchema=mongoose.Schema({
     content:{ type:String, required:true},
     images:{ type:[String]},
     videos:{ type:[String]},
+    isShortFormVideo:{type:Boolean, default:false},
     isRepostable:{ type:String, default:true},
 
     viewUsers:{ type:[String], default:{}},
@@ -172,9 +156,15 @@ const postSchema=mongoose.Schema({
 const Post=new mongoose.model("post",postSchema);
 
 app.post("/api/createpost",async (req,res)=>{
-    const {userId,postType,tags,content,images,videos,isRepostable}=req.body;
+    const {userId,postType,tags,content,images,videos,isShortFormVideo}=req.body;
     if(!userId || !postType || !content){
         return res.status(400).json({message:"User ID, post type, and content are required."})
+    }
+ 
+    const isRepostable=false;
+    if(isShortFormVideo === undefined || isShortFormVideo===false){
+        isShortFormVideo = false;
+        isRepostable = true;
     }
 
     const newPost=new Post({
@@ -185,7 +175,8 @@ app.post("/api/createpost",async (req,res)=>{
         content,
         images:images || [],
         videos:videos || [],
-        isRepostable:isRepostable !== undefined? isRepostable:true,
+        isShortFormVideo,
+        isRepostable,
     });
 
     await newPost.save();
@@ -279,6 +270,9 @@ app.put("/api/addview/:postId",async (res,req)=>{
 });
 
 
+
+
+
 const childCommentSchema=mongoose.Schema({
     commentId: { type: String, required: true, unique: true },
     content: { type: String, required: true },
@@ -360,3 +354,26 @@ app.post("/api/reply/:postId/:commentId",async (req,res)=>{
     res.status(200).json({message:"replied successfully",post:updatedChildComment});
 
 });
+
+
+
+
+
+
+
+
+
+
+function authenticationToken(req,res,next){
+
+    const token =req.header("Authorization")?.split(" ")[1];
+    if(!token)return res.sendStatus(401).json({message:"null token"});
+
+    jwt.verify(token,secretKey,(err,user)=>{
+        if(err) return res.status(403).json({message:"invalid token"});
+        
+        req.user=user;
+        next();
+    })
+}
+
