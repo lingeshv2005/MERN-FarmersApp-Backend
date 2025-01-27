@@ -19,9 +19,7 @@ mongoose.connect(mongourl).then(() => {
 
 const userSchema=new mongoose.Schema({
     userId: {type:String, unique:true, required:true},
-    email: {type: String, unique: true ,default:""},
     username: {type: String, required: true, unique: true },
-    phone: {type: String, unique: true ,default:""},
     password: {type: String, required: true }
 });
 const User=new mongoose.model("login",userSchema);
@@ -36,10 +34,10 @@ app.post("/api/signup",async (req,res)=>{
     if(existingUser){
         return res.status(400).json({message:"username already exists"});
     }
-
+    
     const hashedPassword=await bcrypt.hash(password,12);
 
-    const newUser =new User({
+    const newUser = new User({
         userId:uuidv4(),
         username,
         password:hashedPassword
@@ -71,6 +69,67 @@ app.get("/api/login",async (req,res)=>{
 
 
 
+
+const animalTypes=new mongoose.Schema({
+    animalName:{type:String},
+    total:{type:Number}
+})
+
+const userDetailsSchema=new mongoose.Schema({
+    userId: {type:String, unique:true, required:true},
+    email: {type: String, unique: true, required: true},
+    username: {type: String, required: true },
+    phone: {type: String, unique: true, required:true},
+    name: {type: String, required:true, },
+    location: {type:String, required:true},
+
+    userType: {type:String, default:"farmer", enum:["farmer","veterinarian"]},
+    animalTypes: [animalTypes],
+    profilePicture:{type:String,default:"avatar.svg"},
+    bio:{type:String,default:""},
+    dateOfBirth:{type:String, default:Date.now()},
+    gender:{type:String,default:"prefernottosay",enum:["male","female","other","prefernottosay"]},
+    verificationStatus:{type:String, default:false},
+    website:{type:String, default:""},
+    facebook:{type:String,default:""},
+    instagram:{type:String,default:""},
+    twitter:{type:String,default:""},
+    whatsapp:{type:String,default:""},
+    totalPosts:{type:Number,default:0},
+    totalLikes:{type:Number,default:0},
+    totalReposts:{type:Number,default:0},
+    isActive:{type:Boolean,default:true},
+    lastLogin:{type:Date,default:Date.now()},
+    createdAt:{type:Date,default:Date.now()},
+    updatedAt:{type:Date,default:Date.now()},
+});
+
+const UserDetails=new mongoose.model("userDetails",userDetailsSchema);
+
+app.put("/api/updateuserdetails/:userId",async (req,res)=>{
+    const {userId}=req.params;
+    const userDetails=req.body;
+    
+    const user=new User.findOne({userId});
+    if(!user){
+        return res.status(404).json({message:"User not found"});
+    }
+
+    const updatedUserDetails=UserDetails.findOneAndUpdate({
+        ...userDetails,
+        user:user[username],
+        userId:user[userId]
+    });
+
+    await updatedUserDetails.save();
+    return res.status(200).json({message:"user details updated successfully",userDetails:updatedUserDetails});
+    
+});
+
+
+
+
+
 function authenticationToken(req,res,next){
 
     const token =req.header("Authorization")?.split(" ")[1];
@@ -83,6 +142,8 @@ function authenticationToken(req,res,next){
         next();
     })
 }
+
+
 
 
 
@@ -272,7 +333,6 @@ app.post("/api/comment/:postId",async (req,res)=>{
     res.status(200).json({message:"commented successfully",post:updatedComment});
 
 });
-
 
 app.post("/api/reply/:postId/:commentId",async (req,res)=>{
     const {postId,commentId}=req.params;
