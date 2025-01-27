@@ -69,6 +69,42 @@ app.get("/api/login",async (req,res)=>{
     return res.status(201).json({message:"user login successfull","token":token});
 });
 
+const animalTypes=new mongoose.Schema({
+    animalName:{type:String},
+    total:{type:Number}
+})
+
+const userDetailsSchema=new mongoose.Schema({
+    userId: {type:String, unique:true, required:true},
+    email: {type: String, unique: true, required: true},
+    username: {type: String, required: true },
+    phone: {type: String, unique: true, required:true},
+    name: {type: String, required:true, },
+    userType: {type:String, default:"farmer", enum:["farmer","veterinarian"]},
+    location: {type:String, required:true},
+    animalTypes: [animalTypes],
+    profilePicture:{type:String,default:"avatar.svg"},
+    bio:{type:String,default:""},
+    dateOfBirth:{type:String, default:Date.now()},
+    gender:{type:String,enum:["male","female","other","prefernottosay"]},
+    verificationStatus:{type:String, default:false},
+    website:{type:String, default:""},
+    facebook:{type:String,default:""},
+    instagram:{type:String,default:""},
+    twitter:{type:String,default:""},
+    whatsapp:{type:String,default:""},
+    totalPosts:{type:Number,default:0},
+    totalLikes:{type:Number,default:0},
+    totalReposts:{type:Number,default:0},
+    isActive:{type:Boolean,default:true},
+    lastLogin:{type:Date,default:Date.now()},
+    createdAt:{type:Date,default:Date.now()},
+    updatedAt:{type:Date,default:Date.now()},
+});
+
+
+const UserDetails=new mongoose.model("userDetails",userDetailsSchema);
+
 
 
 function authenticationToken(req,res,next){
@@ -300,3 +336,9 @@ app.post("/api/reply/:postId/:commentId",async (req,res)=>{
     res.status(200).json({message:"replied successfully",post:updatedChildComment});
 
 });
+
+
+
+// https://chatgpt.com/c/67970938-c5f8-8011-8490-0608c66fe94e
+
+
