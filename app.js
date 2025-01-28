@@ -3,13 +3,16 @@ const mongoose=require("mongoose");
 const { v4: uuidv4 } = require('uuid');
 const bcrypt=require("bcryptjs");
 const jwt=require("jsonwebtoken");
+const cors=require("cors");
 
 const app=express();
 app.use(express.json());
+app.use(cors());
+
 const port=3000;
 const secretKey="+8]'/[;.pl,12qaz`wsx345e[p;dcy\"gvrft7.;[8uhujio?nmkl7890-=";
-const mongourl="mongodb://localhost:27017/farmers-social-media";
-// const mongourl="mongodb+srv://lingeshv520:lingeshv2005@cluster0.yzegp.mongodb.net/farmers-social-media";
+// const mongourl="mongodb://localhost:27017/farmers-social-media";
+const mongourl="mongodb+srv://lingeshv520:lingeshv2005@cluster0.yzegp.mongodb.net/farmers-social-media";
 
 mongoose.connect(mongourl).then(() => {
         console.log("MongoDB Connected...");
@@ -124,7 +127,22 @@ app.put("/api/updateuserdetails/:userId",async (req,res)=>{
     
 });
 
+app.get("/api/getuserdetails/:userId",async(req,res)=>{
+    const {userId}=req.params;
 
+    try {
+        const userDetails = await UserDetails.findOne({ userId });
+
+        if (!userDetails) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        return res.status(200).json(userDetails);
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+
+});
 
 const postSchema=mongoose.Schema({
     postId:{ type:String, required:true, unique:true},
@@ -356,7 +374,21 @@ app.post("/api/reply/:postId/:commentId",async (req,res)=>{
 });
 
 
+app.get("/api/comment/:postId",async(req,res)=>{
+    const {postId}=req.params;
 
+    try {
+        const comment = await Comment.findOne({ postId });
+
+        if (!comment) {
+            return res.status(404).json({ message: "Comment not found" });
+        }
+
+        return res.status(200).json(comment);
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+});
 // https://chatgpt.com/c/67970938-c5f8-8011-8490-0608c66fe94e
 
 
