@@ -8,8 +8,8 @@ const app=express();
 app.use(express.json());
 const port=3000;
 const secretKey="+8]'/[;.pl,12qaz`wsx345e[p;dcy\"gvrft7.;[8uhujio?nmkl7890-=";
-// const mongourl="mongodb://localhost:27017/farmers-social-media";
-const mongourl="mongodb+srv://lingeshv520:lingeshv2005@cluster0.yzegp.mongodb.net/farmers-social-media";
+const mongourl="mongodb://localhost:27017/farmers-social-media";
+// const mongourl="mongodb+srv://lingeshv520:lingeshv2005@cluster0.yzegp.mongodb.net/farmers-social-media";
 
 mongoose.connect(mongourl).then(() => {
         console.log("MongoDB Connected...");
@@ -106,60 +106,20 @@ const userDetailsSchema=new mongoose.Schema({
 const UserDetails=new mongoose.model("userDetails",userDetailsSchema);
 
 
-
-
-const animalTypes=new mongoose.Schema({
-    animalName:{type:String},
-    total:{type:Number}
-});
-
-const userDetailsSchema=new mongoose.Schema({
-    userId: {type:String, unique:true, required:true},
-    email: {type: String, unique: true, required: true},
-    username: {type: String, required: true },
-    phone: {type: String, unique: true, required:true},
-    name: {type: String, required:true, },
-    location: {type:String, required:true},
-
-    userType: {type:String, default:"farmer", enum:["farmer","veterinarian"]},
-    animalTypes: [animalTypes],
-    profilePicture:{type:String,default:"avatar.svg"},
-    bio:{type:String,default:""},
-    dateOfBirth:{type:String, default:Date.now()},
-    gender:{type:String,default:"prefernottosay",enum:["male","female","other","prefernottosay"]},
-    verificationStatus:{type:String, default:false},
-    website:{type:String, default:""},
-    facebook:{type:String,default:""},
-    instagram:{type:String,default:""},
-    twitter:{type:String,default:""},
-    whatsapp:{type:String,default:""},
-    totalPosts:{type:Number,default:0},
-    totalLikes:{type:Number,default:0},
-    totalReposts:{type:Number,default:0},
-    isActive:{type:Boolean,default:true},
-    lastLogin:{type:Date,default:Date.now()},
-    createdAt:{type:Date,default:Date.now()},
-    updatedAt:{type:Date,default:Date.now()},
-});
-
-const UserDetails=new mongoose.model("userDetails",userDetailsSchema);
-
 app.put("/api/updateuserdetails/:userId",async (req,res)=>{
     const {userId}=req.params;
     const userDetails=req.body;
     
-    const user=new User.findOne({userId});
+    const user=await User.findOne({userId});
     if(!user){
         return res.status(404).json({message:"User not found"});
     }
 
-    const updatedUserDetails=UserDetails.findOneAndUpdate({
-        ...userDetails,
-        user:user[username],
-        userId:user[userId]
-    });
+    const updatedUserDetails =await UserDetails.findOneAndUpdate(
+        {userId},
+        {...userDetails,username:user.username},
+        {new:true,upsert:true});
 
-    await updatedUserDetails.save();
     return res.status(200).json({message:"user details updated successfully",userDetails:updatedUserDetails});
     
 });
@@ -177,9 +137,9 @@ const postSchema=mongoose.Schema({
     isShortFormVideo:{type:Boolean, default:false},
     isRepostable:{ type:String, default:true},
 
-    viewUsers:{ type:[String], default:{}},
-    likeUsers:{ type:[String], default:{}},
-    repostUsers:{ type:[String], default:{}},
+    viewUsers:{ type:[String], default:[]},
+    likeUsers:{ type:[String], default:[]},
+    repostUsers:{ type:[String], default:[]},
     viewCount:{ type:Number,default:0},
     likeCount:{ type:Number, default:0},
     repostCount:{ type:Number, default:0},
@@ -197,11 +157,7 @@ app.post("/api/createpost",async (req,res)=>{
         return res.status(400).json({message:"User ID, post type, and content are required."})
     }
  
-    const isRepostable=false;
-    if(isShortFormVideo === undefined || isShortFormVideo===false){
-        isShortFormVideo = false;
-        isRepostable = true;
-    }
+    let isRepostable=!isShortFormVideo;
 
     const newPost=new Post({
         userId,
@@ -211,7 +167,7 @@ app.post("/api/createpost",async (req,res)=>{
         content,
         images:images || [],
         videos:videos || [],
-        isShortFormVideo,
+        isShortFormVideo:!!isShortFormVideo,
         isRepostable,
     });
 
@@ -231,7 +187,7 @@ app.get("/api/getpost/:postId",async (req,res)=>{
     return res.status(200).json({post});
 });
 
-app.put("/api/updatepost/:postId",async (res,req)=>{
+app.put("/api/updatepost/:postId",async (req,res)=>{
     const {postId}=req.params;
     const updatedata=req.body;
 
@@ -248,14 +204,14 @@ app.put("/api/updatepost/:postId",async (res,req)=>{
     return res.status(200).json({message: "post updated successfully",post:updatedPost});
 });
 
-app.put("/api/addlike/:postId",async (res,req)=>{
+app.put("/api/addlike/:postId",async (req,res)=>{
     const {postId}=req.params;
-    const {likedUserId}=req.body;
+    const {likeUserId}=req.body;
 
     const updatedPost = await Post.findOneAndUpdate(
-        {postId,likeUsers:{$ne: likedUserId}},
+        {postId,likeUsers:{$ne: likeUserId}},
         {
-            $push: {likeUsers:likedUserId},
+            $push: {likeUsers:likeUserId},
             $inc: {likeCount:1},
         },
         {new: true}
@@ -267,7 +223,7 @@ app.put("/api/addlike/:postId",async (res,req)=>{
     return res.status(200).json({message: "Post liked successfully.", post: updatedPost})
 });
 
-app.put("/api/addrepost/:postId",async (res,req)=>{
+app.put("/api/addrepost/:postId",async (req,res)=>{
     const {postId}=req.params;
     const {repostUserId}=req.body;
 
@@ -286,7 +242,7 @@ app.put("/api/addrepost/:postId",async (res,req)=>{
     return res.status(200).json({message: "Post liked successfully.", post: updatedPost})
 });
 
-app.put("/api/addview/:postId",async (res,req)=>{
+app.put("/api/addview/:postId",async (req,res)=>{
     const {postId}=req.params;
     const {viewUserId}=req.body;
 
@@ -373,7 +329,7 @@ app.post("/api/reply/:postId/:commentId",async (req,res)=>{
     }
 
     const newChildComment={
-        commentId:uuidv4,
+        commentId:uuidv4(),
         commentedUserId,
         content,
         likeUsers:[],
@@ -383,21 +339,25 @@ app.post("/api/reply/:postId/:commentId",async (req,res)=>{
     };
 
     const updatedChildComment =await Comment.findOneAndUpdate(
-        {postId,commentId},
-        {$push:{replies:newChildComment}},
+        {postId,"comments.commentId":commentId},
+        {
+            $push:{"comments.$.replies":newChildComment},
+            $inc: {"comments.$.replyCount":1}
+        },
         {new:true,upsert:true},
     );
+
+    if (!updatedChildComment) {
+        return res.status(404).json({ message: "Post or comment not found" });
+    }
+
     res.status(200).json({message:"replied successfully",post:updatedChildComment});
 
 });
 
 
 
-<<<<<<< HEAD
 // https://chatgpt.com/c/67970938-c5f8-8011-8490-0608c66fe94e
-
-
-=======
 
 
 
@@ -418,4 +378,3 @@ function authenticationToken(req,res,next){
     })
 }
 
->>>>>>> bd8ef25d09b445d8ee5471b12d6276f71b7b028d
