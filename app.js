@@ -8,8 +8,8 @@ const app=express();
 app.use(express.json());
 const port=3000;
 const secretKey="+8]'/[;.pl,12qaz`wsx345e[p;dcy\"gvrft7.;[8uhujio?nmkl7890-=";
-const mongourl="mongodb://localhost:27017/farmers-social-media";
-// const mongourl="mongodb+srv://lingeshv520:lingeshv2005@cluster0.yzegp.mongodb.net/farmers-social-media";
+// const mongourl="mongodb://localhost:27017/farmers-social-media";
+const mongourl="mongodb+srv://lingeshv520:lingeshv2005@cluster0.yzegp.mongodb.net/farmers-social-media";
 
 mongoose.connect(mongourl).then(() => {
         console.log("MongoDB Connected...");
