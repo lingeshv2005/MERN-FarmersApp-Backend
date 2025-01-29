@@ -199,6 +199,26 @@ app.get("/api/getpost/:postId",async (req,res)=>{
 
     return res.status(200).json({post});
 });
+// get all post by userId
+app.get("/api/getpost/user/:userId",async (req,res)=>{
+    const {userId}=req.params;
+
+    const posts= await Post.find({userId});
+
+    return res.status(200).json({posts});
+});
+// get all posts
+app.get("/api/getposts",async (req,res)=>{
+
+    const posts= await Post.find();
+
+    if(posts.length===0){
+        return res.status(404).json({message:"no post not found"})
+    }
+
+    return res.status(200).json({posts});
+});
+
 
 app.put("/api/updatepost/:postId",async (req,res)=>{
     const {postId}=req.params;
