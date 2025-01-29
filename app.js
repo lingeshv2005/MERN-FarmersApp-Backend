@@ -1,25 +1,19 @@
-const express=require("express");
-const mongoose=require("mongoose");
-const { v4: uuidv4 } = require('uuid');
-const bcrypt=require("bcryptjs");
-const jwt=require("jsonwebtoken");
-const cors=require("cors");
+const { 
+    express, 
+    mongoose, 
+    uuidv4, 
+    bcrypt, 
+    jwt, 
+    cors, 
+    app, 
+    port, 
+    secretKey, 
+    mongourl 
+  } = require('./import');
 
-const app=express();
 app.use(express.json());
 app.use(cors());
 
-const port=3000;
-const secretKey="+8]'/[;.pl,12qaz`wsx345e[p;dcy\"gvrft7.;[8uhujio?nmkl7890-=";
-// const mongourl="mongodb://localhost:27017/farmers-social-media";
-const mongourl="mongodb+srv://lingeshv520:lingeshv2005@cluster0.yzegp.mongodb.net/farmers-social-media";
-
-mongoose.connect(mongourl).then(() => {
-        console.log("MongoDB Connected...");
-        app.listen(port,()=>{
-            console.log(`Server is running on port ${port}`);
-        });
-    });
 
 const userSchema=new mongoose.Schema({
     userId: {type:String, unique:true, required:true},
