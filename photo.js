@@ -1,21 +1,19 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
-const cors = require("cors");
+const { 
+  express, 
+  mongoose, 
+  cors, 
+  app, 
+  port, 
+  fs,
+  multer,
+  path,
+  mongourl 
+} = require('./import');
 
-const app = express();
-const port = 5000;
-const mongourl = "mongodb://localhost:27017/farmers-social-media"; // MongoDB URL
 
 app.use(cors());
 app.use(express.json());
 
-// ✅ Connect to MongoDB
-mongoose.connect(mongourl)
-  .then(() => console.log("MongoDB Connected..."))
-  .catch(err => console.error("MongoDB Connection Error:", err));
 
 // ✅ Create 'uploads' directory if it doesn't exist
 const uploadsDir = path.join(__dirname, "uploads");
@@ -32,13 +30,14 @@ const storage = multer.diskStorage({
     cb(null, uploadsDir);
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    const uniqueSuffix = Date.now();
     cb(null, uniqueSuffix + path.extname(file.originalname));
   },
 });
 
+// ✅ FileFilter for specific file type
 const fileFilter = (req, file, cb) => {
-  const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif"];
+  const allowedMimeTypes = ["image/jpeg", "image/png", "image/gif", "image/svg"];
   if (!allowedMimeTypes.includes(file.mimetype)) {
     return cb(new Error("Only image files (JPG, PNG, GIF) are allowed!"), false);
   }
@@ -48,25 +47,10 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 5 * 1024 * 1024 },
 });
 
-// ✅ Upload Image Route
-app.post("/upload", upload.single("image"), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded!" });
-  }
+module.exports={
+  upload
+};
 
-  res.json({
-    message: "Image uploaded successfully",
-    imageUrl: `/uploads/${req.file.filename}`,
-  });
-});
-
-// ✅ Test Route (Check if server is running)
-app.get("/", (req, res) => {
-  res.send("Server is running...");
-});
-
-// ✅ Start the Server
-app.listen(port, () => console.log(`Server running on http://localhost:${port}`));

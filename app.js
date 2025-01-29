@@ -10,6 +10,7 @@ const {
     secretKey, 
     mongourl 
   } = require('./import');
+const {upload} =require("./photo");
 
 app.use(express.json());
 app.use(cors());
@@ -387,6 +388,18 @@ app.get("/api/comment/:postId",async(req,res)=>{
 
 
 
+
+app.post("/upload", upload.single("image"), (req, res) => {
+    if (!req.file) {
+      return res.status(400).json({ message: "No file uploaded!" });
+    }
+  
+    res.json({
+      message: "Image uploaded successfully",
+      imageUrl: `/uploads/${req.file.filename}`,
+    });
+  });
+  
 
 
 
