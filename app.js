@@ -64,7 +64,7 @@ app.get("/api/login",async (req,res)=>{
     }
 
     const token=jwt.sign({username},secretKey,{expiresIn:"1h"});
-    return res.status(201).json({message:"user login successfull","token":token});
+    return res.status(201).json({message:"user login successfull","token":token,userId:user.userId});
 });
 
 const animalTypes=new mongoose.Schema({
