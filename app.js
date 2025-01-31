@@ -212,7 +212,7 @@ app.get("/api/getposts",async (req,res)=>{
 
     const posts= await Post.find();
 
-    if(posts.length===0){
+    if(!posts){
         return res.status(404).json({message:"no post not found"})
     }
 
@@ -352,6 +352,15 @@ app.post("/api/comment/:postId",async (req,res)=>{
     res.status(200).json({message:"commented successfully",post:updatedComment});
 
 });
+
+app.get("/api/getcomment/:postId",async (req,res)=>{
+    const {postId}=req.params;
+
+    const comments =await Comment.find({postId});
+    res.status(200).json({message:"retervied successfully",post:comments});
+
+});
+
 
 app.post("/api/reply/:postId/:commentId",async (req,res)=>{
     const {postId,commentId}=req.params;
