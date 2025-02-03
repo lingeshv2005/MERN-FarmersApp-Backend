@@ -15,6 +15,7 @@ const messageSchema = new mongoose.Schema({
 });
 
 const individualMessageSchema = new mongoose.Schema({
+    communicationId: {type:String, required:true, },
     userId1: {type:String, required:true},
     userId2: {type:String ,required:true},
     messages: [messageSchema],    
