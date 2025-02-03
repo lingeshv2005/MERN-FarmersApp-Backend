@@ -7,5 +7,6 @@ const router = express.Router();
 router.post('/comment/:postId', addComment);            // Add a comment to a post
 router.get('/get/:postId', getComments);                 // Get all comments for a post
 router.post('/reply/:postId/:commentId', addReply);     // Add a reply to a comment
+router.post('/like/:postId/:commentId', addReply);     // Add a reply to a comment
 
 export default router;

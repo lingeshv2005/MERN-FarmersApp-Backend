@@ -89,3 +89,26 @@ export const addReply = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
+export const addCommentLike =async (req,res)=>{
+  const { postId,commentId } = req.params;
+  const { likedUserId } =req.body;
+
+  try{
+    const updatedPost=await PostComment.findOneAndUpdate(
+      {postId,"comments.commentId":commentId, "comments.likeUsers":{$ne:likedUserId}},
+      { $push: { "comments.$.likeUsers": likedUserId }, $inc:{"comment.$.likeCount":1}},
+      { new: true }
+    );
+
+    if(!updatedPost){
+      return res.status(404).json({ message: 'Comment not found or already liked by user' });
+    }
+
+    return res.status(200).json({ message: 'Comment like added successfully', updatedPost });
+    
+  }catch(error){
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+}
+

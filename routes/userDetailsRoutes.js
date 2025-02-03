@@ -1,10 +1,11 @@
 import express from 'express';
-import { updateUserDetails, getUserDetails } from '../controllers/userDetailsController.js';
+import { updateUserDetails, getUserDetails, addFollower, addHistory } from '../controllers/userDetailsController.js';
 
 const router = express.Router();
 
-// Routes
-router.put('/update/:userId', updateUserDetails);  // Update user details
-router.get('/get/:userId', getUserDetails);        // Get user details
+router.put('/update/:userId', updateUserDetails);
+router.get('/get/:userId', getUserDetails);
+router.get('/addfollower/:userId',addFollower);
+router.get('/addhistory/:userId',addHistory);
 
 export default router;

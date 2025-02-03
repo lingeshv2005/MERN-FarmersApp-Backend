@@ -8,6 +8,7 @@ import postRoutes from './routes/postRoutes.js';
 import userDetailsRoutes from './routes/userDetailsRoutes.js';
 import commentsRoutes from './routes/commentsRoutes.js';
 import photoRoutes from './routes/photoRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
 import routesInfo from './routes/routesInfo.js';  // Import the new route
 
 dotenv.config();
@@ -29,6 +30,7 @@ app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/userdetails", userDetailsRoutes);
 app.use("/api/v1/comments", commentsRoutes);
 app.use("/api/v1/photos", photoRoutes);
+app.use("/api/v1/message", messageRoutes);
 app.use(routesInfo);  // Add this line to use the routes info
 
 export default app;

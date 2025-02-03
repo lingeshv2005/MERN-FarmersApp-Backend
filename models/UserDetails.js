@@ -24,11 +24,25 @@ const userDetailsSchema = new mongoose.Schema({
     instagram: { type: String, default: "" },
     twitter: { type: String, default: "" },
     whatsapp: { type: String, default: "" },
+
+    followers: { type: Number, default: 0 },
+    following: { type: Number, default: 0 },
+    followersId: { type: [String], default: [] },
+    followingId: { type: [String], default: [] },
+
+    postsId: { type: [String], default: [] },
     totalPosts: { type: Number, default: 0 },
+
+    viewedPostsId: { type: [String], default: [] },
+    totalViews: { type: Number, default: 0 },
+
+    likedPostId: { type: [String], default: [] },
     totalLikes: { type: Number, default: 0 },
+
+    repostedPostId: { type: [String], default: [] },
     totalReposts: { type: Number, default: 0 },
+
     isActive: { type: Boolean, default: true },
-    lastLogin: { type: Date, default: Date.now() },
     createdAt: { type: Date, default: Date.now() },
     updatedAt: { type: Date, default: Date.now() },
 });

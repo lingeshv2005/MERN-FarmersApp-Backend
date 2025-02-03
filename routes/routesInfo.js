@@ -2,7 +2,7 @@ import express from 'express';
 
 const router = express.Router();
 
-router.get('/api/v1/routes', (req, res) => {
+router.get('/', (req, res) => {
     const routes = {
         "Authentication Routes": [
             { method: "POST", route: "/api/v1/auth/register", description: "Register a new user" },
