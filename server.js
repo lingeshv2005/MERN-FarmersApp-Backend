@@ -1,6 +1,7 @@
 import app from './app.js';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import "./controllers/authController.js";
 
 dotenv.config({ path: "./config/config.env" });
 

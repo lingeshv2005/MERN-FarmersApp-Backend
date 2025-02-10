@@ -9,29 +9,28 @@ import userDetailsRoutes from './routes/userDetailsRoutes.js';
 import commentsRoutes from './routes/commentsRoutes.js';
 import photoRoutes from './routes/photoRoutes.js';
 import messageRoutes from './routes/messageRoutes.js';
-import routesInfo from './routes/routesInfo.js';  // Import the new route
+import routesInfo from './routes/routesInfo.js'; 
 
 dotenv.config();
 
 const app = express();
 
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// Middleware
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from the 'uploads' directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Routes
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/userdetails", userDetailsRoutes);
 app.use("/api/v1/comments", commentsRoutes);
 app.use("/api/v1/photos", photoRoutes);
 app.use("/api/v1/message", messageRoutes);
-app.use(routesInfo);  // Add this line to use the routes info
+app.use(routesInfo);
 
 export default app;
 
