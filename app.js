@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { cors } from './import.js';
+const cors = require("cors");
 
 import authRoutes from './routes/authRoutes.js';
 import postRoutes from './routes/postRoutes.js';
