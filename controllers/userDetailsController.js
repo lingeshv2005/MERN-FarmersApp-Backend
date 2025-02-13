@@ -7,7 +7,7 @@ export const updateUserDetails = async (req, res) => {
   const userDetails = req.body;
 
   try {
-
+    
     const user =await User.findOne({userId});
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
