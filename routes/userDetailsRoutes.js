@@ -4,7 +4,7 @@ import { updateUserDetails, getUserDetails, addFollower, addHistory } from '../c
 const router = express.Router();
 
 router.put('/update/:userId', updateUserDetails);
-router.get('/get/:userId', getUserDetails);
+router.get('/getuserdetails/:userId', getUserDetails);
 router.get('/addfollower/:userId',addFollower);
 router.get('/addhistory/:userId',addHistory);
 

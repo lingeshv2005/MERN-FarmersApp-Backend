@@ -9,9 +9,6 @@ export const updateUserDetails = async (req, res) => {
   try {
     
     const user =await User.findOne({userId});
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-      }
 
     const updatedUser = await UserDetails.findOneAndUpdate(
       { userId },
@@ -37,7 +34,7 @@ export const getUserDetails = async (req, res) => {
     const user = await UserDetails.findOne({ userId });
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(200).json({ message: 'User not found' });
     }
 
     return res.status(200).json(user);

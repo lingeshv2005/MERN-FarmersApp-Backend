@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: "./config/config.env" });
 
-const secretKey = process.env.secretkey;
+const secretKey = process.env.secretKey;
 
 export const signup = async (req, res) => {
     try {
@@ -28,8 +28,8 @@ export const signup = async (req, res) => {
             password: hashedPassword
         });
 
-        await newUser.save();
-        return res.status(201).json({ message: "User registered successfully" });
+        const user=await newUser.save();
+        return res.status(201).json({ message: "User registered successfully" ,user});
     } catch (error) {
         return res.status(500).json({ message: "Server error", error: error.message });
     }
@@ -51,11 +51,12 @@ export const login = async (req, res) => {
         if (!isValid) {
             return res.status(401).json({ message: "Invalid credentials" });
         }
+        console.log(secretKey);
 
         const token = jwt.sign({ userId: user.userId }, secretKey, { expiresIn: "1h" });
         return res.status(200).json({ message: "User login successful", token, userId: user.userId });
     } catch (error) {
-        return res.status(500).json({ message: "Server error", error: error.message });
+        return res.status(500).json({ message: "Server error", error: error.message});
     }
 };
 
