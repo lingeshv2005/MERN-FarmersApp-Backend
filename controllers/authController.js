@@ -10,28 +10,49 @@ const secretKey = process.env.secretKey;
 
 export const signup = async (req, res) => {
     try {
-        const { username, password } = req.body;
-        if (!username || !password) {
-            return res.status(400).json({ message: "Username and password are required" });
-        }
+        const {
+            username,
+            password,
+            email,
+            name,
+            phone,
+            userType,
+        } = req.body;
 
-        const existingUser = await User.findOne({ username });
-        if (existingUser) {
-            return res.status(400).json({ message: "Username already exists" });
-        }
-
+        // Hash password
         const hashedPassword = await bcrypt.hash(password, 12);
 
+        // Create new user with all fields
         const newUser = new User({
-            userId: uuidv4(),
+            userId:uuidv4(),
             username,
-            password: hashedPassword
+            password: hashedPassword,
+            email,
+            name,
+            phone,
+            userType,
+            lastLogin: new Date(),
+            createdAt: new Date(),
+            updatedAt: new Date(),
         });
 
-        const user=await newUser.save();
-        return res.status(201).json({ message: "User registered successfully" ,user});
+        await newUser.save();
+
+        res.status(201).json({
+            success: true,
+            user: {
+                userId: newUser.userId,
+                username: newUser.username,
+                email: newUser.email,
+                name: newUser.name,
+                userType: newUser.userType
+            }
+        });
     } catch (error) {
-        return res.status(500).json({ message: "Server error", error: error.message });
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
     }
 };
 
@@ -51,17 +72,26 @@ export const login = async (req, res) => {
         if (!isValid) {
             return res.status(401).json({ message: "Invalid credentials" });
         }
-        console.log(secretKey);
 
-        const token = jwt.sign({ userId: user.userId }, secretKey, { expiresIn: "1h" });
-        return res.status(200).json({ message: "User login successful", token, userId: user.userId });
+        const token = jwt.sign(
+            { userId: user.userId }, 
+            process.env.SECRET_KEY,
+            { expiresIn: "24h" }
+        );
+
+        return res.status(200).json({ 
+            message: "Login successful",
+            token,
+            userId: user.userId,
+            name: user.name,
+            email: user.email,
+            userType: user.userType
+        });
     } catch (error) {
+        console.error('Login error:', error);
         return res.status(500).json({ message: "Server error", error: error.message});
     }
 };
-
-
-
 
 export const googleLogin = async (req, res) => {
     try {

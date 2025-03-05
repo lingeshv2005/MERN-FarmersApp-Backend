@@ -5,7 +5,7 @@ const router = express.Router();
 
 router.put('/update/:userId', updateUserDetails);
 router.get('/getuserdetails/:userId', getUserDetails);
-router.get('/addfollower/:userId',addFollower);
-router.get('/addhistory/:userId',addHistory);
+router.put('/addfollower/:userId',addFollower);
+router.put('/addhistory/:userId',addHistory);
 
 export default router;

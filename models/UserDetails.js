@@ -7,9 +7,9 @@ const animalTypes = new mongoose.Schema({
 
 const userDetailsSchema = new mongoose.Schema({
     userId: { type: String, unique: true, required: true },
-    email: { type: String, unique: true, required: true },
+    email: { type: String },
     username: { type: String, required: true },
-    phone: { type: String, unique: true, required: true },
+    phone: { type: String },
     name: { type: String, required: true },
     userType: { type: String, default: "farmer", enum: ["farmer", "veterinarian"] },
     location: { type: String, required: true },

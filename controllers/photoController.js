@@ -1,45 +1,61 @@
-import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
-// Configure multer for file storage and filtering
+// Ensure the uploads folder exists
+const uploadDir = "./uploads";
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = './uploads';
-    // Ensure upload directory exists
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir);
-    }
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}${ext}`);
-  }
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
 });
 
+// Multer file filter to allow only images
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"];
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Invalid file type. Only images are allowed."), false);
+  }
+};
+
+// Initialize multer with limits and file filter
 const upload = multer({
   storage,
-  fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|svg/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
-    cb(new Error('Invalid file type, only JPEG, PNG, and GIF are allowed.'));
-  }
+  fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
 });
 
-// Controller function for handling image uploads
-export const uploadPhoto = (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded!" });
-  }
+// Controller function for multiple image uploads
+export const uploadPhotos = (req, res) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: "No files uploaded!" });
+    }
 
-  res.json({
-    message: "Image uploaded successfully",
-    imageUrl: `/uploads/${req.file.filename}`,
-  });
+    const imageUrls = req.files.map((file) => `/uploads/${file.filename}`);
+
+    return res.status(200).json({
+      message: "Images uploaded successfully",
+      imageUrls,
+    });
+  } catch (error) {
+    console.error("Upload error:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
 };
+
+// Export the configured multer instance
+export const uploadMiddleware = upload.array("images", 5); // Allows up to 5 images
+
+
+// get the photo by url

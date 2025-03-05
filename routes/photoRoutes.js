@@ -1,13 +1,25 @@
-import express from 'express';
-import { uploadPhoto } from '../controllers/photoController.js';
-import multer from 'multer';
+import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
+import { uploadPhotos, uploadMiddleware } from "../controllers/photoController.js";
 
 const router = express.Router();
 
-// Set up the multer upload middleware for handling file uploads
-const upload = multer();
+// Convert ES module __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
-// POST route for uploading photos
-router.post('/upload', upload.single('image'), uploadPhoto);
+// Route to upload images
+router.post("/upload", uploadMiddleware, uploadPhotos);
+
+// Route to retrieve images
+router.get("/:filename", (req, res) => {
+    const filePath = path.join(__dirname, "../uploads", req.params.filename);
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            res.status(404).json({ message: "File not found" });
+        }
+    });
+});
 
 export default router;

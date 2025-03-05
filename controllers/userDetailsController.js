@@ -7,24 +7,34 @@ export const updateUserDetails = async (req, res) => {
   const userDetails = req.body;
 
   try {
-    
-    const user =await User.findOne({userId});
-
+    const user = await User.findOne({ userId });
+    console.log("User Found:", user);
+  
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+  
     const updatedUser = await UserDetails.findOneAndUpdate(
       { userId },
-      { ...userDetails, updatedAt: Date.now() , userId, username:user.username},
-      { new: true ,upsert:true}
+      { ...userDetails, updatedAt: Date.now(), username: user.username },
+      { new: true, upsert: true }
     );
-
+  
+    console.log("Updated User Details:", updatedUser);
+  
     if (!updatedUser) {
-      return res.status(404).json({ message: 'Not Updated' });
+      return res.status(404).json({ message: "Not Updated" });
     }
-
-    return res.status(200).json({ message: 'User details updated successfully', userDetails: updatedUser });
+  
+    return res.status(200).json({ message: "User details updated successfully", userDetails: updatedUser });
+  
   } catch (error) {
-    return res.status(500).json({ message: 'Server error', error: error.message });
+    console.error("Error in updateUserDetails:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
-};
+};  
+
+
 
 // Controller to get user details
 export const getUserDetails = async (req, res) => {
@@ -49,17 +59,16 @@ export const addFollower =async (req,res)=>{
 
   try{
     const updateUserDetails=await UserDetails.findOneAndUpdate(
-      {userId, followersId:{$ne:followerId}},
+      { userId, followersId: { $ne: followerId } }, // Prevent duplicate followers
       { $push: { followersId: followerId }, $inc:{followersCount:1}},
       { new: true }
     );
 
     if(!updateUserDetails){
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(200).json({ message: 'Already following' });
     }
 
-    return res.status(200).json({ message: 'Follower added successfully', userDetails: updatedUser });
-    
+    return res.status(200).json({ message: 'Follower added successfully', userDetails: updateUserDetails });    
   }catch(error){
     return res.status(500).json({ message: 'Server error', error: error.message });
   }

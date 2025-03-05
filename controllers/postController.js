@@ -2,27 +2,30 @@ import Post from '../models/Post.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export const createPost = async (req, res) => {
-    const { userId, postType, tags, content, images, videos, isShortFormVideo } = req.body;
-    if (!userId || !postType || !content) {
-        return res.status(400).json({ message: "User ID, post type, and content are required." });
+    try {
+        const { userId, postType, tags, content, images, videos, isShortFormVideo } = req.body;
+        if (!userId || !postType || !content) {
+            return res.status(400).json({ message: "User ID, post type, and content are required." });
+        }
+
+        const newPost = new Post({
+            userId,
+            postId: uuidv4(),
+            tags: Array.isArray(tags) ? tags : [],
+            postType,
+            content,
+            images: Array.isArray(images) ? images : [],
+            videos: Array.isArray(videos) ? videos : [],
+            isShortFormVideo: !!isShortFormVideo,
+            isRepostable: !isShortFormVideo,
+        });
+        console.log(newPost);
+        await newPost.save();
+        return res.status(201).json({ message: "Post created successfully", post: newPost });
+    } catch (error) {
+        console.error("Error creating post:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
     }
-
-    let isRepostable = !isShortFormVideo;
-
-    const newPost = new Post({
-        userId,
-        postId: uuidv4(),
-        tags: tags || [],
-        postType,
-        content,
-        images: images || [],
-        videos: videos || [],
-        isShortFormVideo: !!isShortFormVideo,
-        isRepostable,
-    });
-
-    await newPost.save();
-    return res.status(200).json({ message: "Post created successfully", post: newPost });
 };
 
 export const getPost = async (req, res) => {
