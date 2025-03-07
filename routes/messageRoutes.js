@@ -1,8 +1,13 @@
-import express from 'express';
-import { createMessage } from '../controllers/messageController.js';
+import express from "express";
+import { createMessage, getMessages, getMessagesByCommunicationId } from "../controllers/messageController.js";
 
 const router = express.Router();
 
-router.put('/message', createMessage);
-// router.get('/getmessage/:user')
+// ✅ Route for fetching messages
+router.get("/messages", getMessages);
+
+// ✅ Route for creating a message
+router.post("/create", createMessage);
+
+router.get('/:communicationId', getMessagesByCommunicationId);
 export default router;

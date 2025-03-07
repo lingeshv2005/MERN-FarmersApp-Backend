@@ -95,3 +95,51 @@ export const addHistory =async (req,res)=>{
     return res.status(500).json({ message: 'Server error', error: error.message });
   }
 }
+
+export const addCommunicationId = async (req, res) => {
+  const { userId } = req.params;
+  const { communicationId } = req.body;
+
+  try {
+    const user = await UserDetails.findOne({ userId });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Check if the communicationId already exists
+    if (user.communicationIds?.includes(communicationId)) {
+      return res.status(200).json({ message: 'CommunicationId already exists' });
+    }
+
+    // Use $addToSet instead of $push to prevent duplicates
+    const updatedUser = await UserDetails.findOneAndUpdate(
+      { userId },
+      { $addToSet: { communicationIds: communicationId } },
+      { new: true } // Returns the updated document
+    );
+
+    return res.status(200).json({ message: 'CommunicationId added successfully', userDetails: updatedUser });
+  } catch (error) {
+    console.error("Error in addCommunicationId:", error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const getCommunicationIds = async (req, res) => {
+    const { userId } = req.params;
+  
+    try {
+      const user = await UserDetails.findOne({ userId }, 'communicationIds'); // Fetch only communicationIds
+  
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      return res.status(200).json({ communicationIds: user.communicationIds || [] });
+    } catch (error) {
+      console.error("Error in getCommunicationIds:", error);
+      return res.status(500).json({ message: 'Server error', error: error.message });
+    }  
+};
+
