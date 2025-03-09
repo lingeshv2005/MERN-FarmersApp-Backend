@@ -14,9 +14,11 @@ router.post("/upload", uploadMiddleware, uploadPhotos);
 
 // Route to retrieve images
 router.get("/:filename", (req, res) => {
-    const filePath = path.join(__dirname, "../uploads", req.params.filename);
+    const filePath = path.resolve(__dirname, "../uploads", req.params.filename);
+
     res.sendFile(filePath, (err) => {
         if (err) {
+            console.error("Error serving file:", err);
             res.status(404).json({ message: "File not found" });
         }
     });

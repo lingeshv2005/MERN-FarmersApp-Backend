@@ -1,94 +1,64 @@
-// import IndividualMessage from '../models/Message.js';
-// import { v4 as uuidv4 } from 'uuid';
-
-// export const createMessage =async (req,res)=>{
-//     const {userId1,userId2,content,messageType,messagedUserId}=req.body;
-
-//     if(!userId1 || !userId2 || !content || !messagedUserId){
-//         return res.status(400).json({ message: "All fields are required" });
-//     }
-//     try{
-//         let chat=await IndividualMessage.findOne({userId1,userId2});
-
-//         if(!chat){
-//             chat=new IndividualMessage({
-//                 communicationId: uuidv4(),
-//                 userId1,
-//                 userId2,
-//                 messages: [{
-//                     messageId:uuidv4(),
-//                     messagedUserId,
-//                     content,
-//                     messageType,
-//                 }],
-//                 updatedAt:new Date(),
-//             });
-//         }else{
-//             chat.messages.push({
-//                 messageId:uuidv4(),
-//                 messagedUserId,
-//                 content,
-//                 messageType,
-//             });
-//             chat.updatedAt=new Date();
-//         }
-//         await chat.save();
-//         res.status(200).json({ message: 'Message sent successfully', chat });
-//     }catch(error){
-//         console.log(error);
-//     }
-// }
-
-
-
-
 import { v4 as uuidv4 } from "uuid";
 import IndividualMessage from "../models/Message.js";
 import { io } from "../server.js"; // Import Socket.IO instance
 
+// ✅ CREATE MESSAGE (Fixed communicationId issue)
 export const createMessage = async (req, res) => {
-    const { userId1, userId2, content, messageType, messagedUserId } = req.body;
+    console.log("Received message request:", req.body); // Debugging
+
+    let { userId1, userId2, content, messageType, messagedUserId, communicationId } = req.body;
 
     if (!userId1 || !userId2 || !content || !messagedUserId) {
         return res.status(400).json({ message: "All fields are required" });
     }
 
     try {
-        let chat = await IndividualMessage.findOne({
+        let chat;
+
+        // ✅ First, check if a chat already exists between the users
+        chat = await IndividualMessage.findOne({
             $or: [
                 { userId1, userId2 },
                 { userId1: userId2, userId2: userId1 }
             ]
         });
 
+        // ✅ If chat exists, use its communicationId
+        if (chat) {
+            communicationId = chat.communicationId;
+        } else {
+            // ✅ If no chat exists, create a new one
+            if (!communicationId) {
+                communicationId = uuidv4();
+            }
+
+            chat = new IndividualMessage({
+                communicationId,
+                userId1,
+                userId2,
+                messages: [],
+            });
+        }
+
+        // ✅ Create new message
         const newMessage = {
             messageId: uuidv4(),
             messagedUserId,
             content,
             messageType,
             status: "sent",
-            reaction: "",
             seenAt: null,
             isEdited: false,
             isDeletedSoft: false,
             isDeletedHard: false,
         };
 
-        if (!chat) {
-            chat = new IndividualMessage({
-                communicationId: uuidv4(),
-                userId1,
-                userId2,
-                messages: [newMessage],
-            });
-        } else {
-            chat.messages.push(newMessage);
-        }
-
+        // ✅ Push message to chat
+        chat.messages.push(newMessage);
         await chat.save();
 
-        // ✅ Emit real-time message to connected clients
-        io.emit("receiveMessage", newMessage);
+        // ✅ Emit real-time message update
+        io.emit("receiveMessage", { ...newMessage, communicationId });
 
         res.status(200).json({ message: "Message sent successfully", chat });
     } catch (error) {
@@ -97,6 +67,7 @@ export const createMessage = async (req, res) => {
     }
 };
 
+// ✅ GET MESSAGES BY USER IDS
 export const getMessages = async (req, res) => {
     const { userId1, userId2 } = req.query;
 
@@ -123,7 +94,7 @@ export const getMessages = async (req, res) => {
     }
 };
 
-
+// ✅ GET MESSAGES BY COMMUNICATION ID
 export const getMessagesByCommunicationId = async (req, res) => {
     const { communicationId } = req.params;
 

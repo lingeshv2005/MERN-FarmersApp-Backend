@@ -5,6 +5,7 @@ import { fileURLToPath } from 'url';
 import  cors from 'cors';
 
 import authRoutes from './routes/authRoutes.js';
+import userRoutes from './routes/userRoutes.js';
 import postRoutes from './routes/postRoutes.js';
 import userDetailsRoutes from './routes/userDetailsRoutes.js';
 import commentsRoutes from './routes/commentsRoutes.js';
@@ -27,6 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/userdetails", userDetailsRoutes);
 app.use("/api/v1/comments", commentsRoutes);
