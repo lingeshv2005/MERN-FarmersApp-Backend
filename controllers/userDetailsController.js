@@ -101,30 +101,26 @@ export const addCommunicationId = async (req, res) => {
   const { communicationId } = req.body;
 
   try {
-    const user = await UserDetails.findOne({ userId });
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    // Check if the communicationId already exists
-    if (user.communicationIds?.includes(communicationId)) {
-      return res.status(200).json({ message: 'CommunicationId already exists' });
-    }
-
-    // Use $addToSet instead of $push to prevent duplicates
+    console.log("hyfbnhuf");
     const updatedUser = await UserDetails.findOneAndUpdate(
       { userId },
-      { $addToSet: { communicationIds: communicationId } },
-      { new: true } // Returns the updated document
+      { $push: { communicationIds: communicationId } }, // ✅ Prevents duplicates
+      { new: true, upsert: true } // ✅ Ensures document is created if not found
     );
 
-    return res.status(200).json({ message: 'CommunicationId added successfully', userDetails: updatedUser });
+    console.log("Updated User:", updatedUser); // ✅ Log user data to debug
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ message: "CommunicationId added successfully", userDetails: updatedUser });
   } catch (error) {
     console.error("Error in addCommunicationId:", error);
-    return res.status(500).json({ message: 'Server error', error: error.message });
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 export const getCommunicationIds = async (req, res) => {
     const { userId } = req.params;
@@ -143,3 +139,45 @@ export const getCommunicationIds = async (req, res) => {
     }  
 };
 
+export const addGroupCommunicationId = async (req, res) => {
+  const { userId } = req.params;
+  const { communicationId } = req.body;
+
+  try {
+    const updatedUser = await UserDetails.findOneAndUpdate(
+      { userId },
+      { $push: { groupCommunicationIds: communicationId } }, // ✅ Prevents duplicates
+      { new: true, upsert: true } // ✅ Ensures document is created if not found
+    );
+
+    console.log("Updated User:", updatedUser); // ✅ Log user data to debug
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ message: "CommunicationId added successfully", userDetails: updatedUser });
+  } catch (error) {
+    console.error("Error in addCommunicationId:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+export const getGroupCommunicationIds = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await UserDetails.findOne({ userId }, 'groupCommunicationIds'); // Fetch only communicationIds
+    console.log(user);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log(user);
+    return res.status(200).json({ groupCommunicationIds: user.groupCommunicationIds || [] });
+  } catch (error) {
+    console.error("Error in getCommunicationIds:", error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }  
+};

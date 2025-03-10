@@ -31,6 +31,7 @@ const userDetailsSchema = new mongoose.Schema({
     followingId: { type: [String], default: [] },
 
     communicationIds: {type:[String], default:[], unique:true},
+    groupCommunicationIds: {type:[String], default:[], unique:true},
 
     postsId: { type: [String], default: [] },
     totalPosts: { type: Number, default: 0 },
