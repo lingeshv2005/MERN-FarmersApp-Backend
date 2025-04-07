@@ -55,6 +55,7 @@ export const createMessage = async (req, res) => {
 export const getMessagesByCommunicationId = async (req, res) => {
     const { communicationId } = req.params;
 
+    console.log(communicationId);
     if (!communicationId) {
         return res.status(400).json({ message: "Communication ID is required" });
     }
@@ -66,7 +67,8 @@ export const getMessagesByCommunicationId = async (req, res) => {
             return res.status(200).json({ messages: [] });
         }
 
-        res.status(200).json({ messages: chat.messages });
+        console.log(chat);
+        res.status(200).json(chat);
     } catch (error) {
         console.error("Error fetching messages:", error);
         res.status(500).json({ message: "Internal Server Error" });
