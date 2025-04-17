@@ -7,24 +7,44 @@ import { io } from "../server.js"; // Import Socket.IO instance
 export const createMessage = async (req, res) => {
     let { userId1, userId2, content, messageType, messagedUserId, communicationId } = req.body;
 
-    if (!userId1 || !userId2 || !content || !messagedUserId || !communicationId) {
+
+    // Check if all required fields are present
+    if (!userId1 || !userId2 || !content || !messagedUserId ) {
+        console.log(userId1,userId2,content,messagedUserId)
         return res.status(400).json({ message: "All fields are required" });
     }
 
     try {
         let chat;
 
-        // ✅ Check if a chat already exists between the users
+        // ✅ If communicationId is null, generate a new one
+        if (!communicationId) {
+            communicationId = uuidv4(); // Generate a new communicationId
+        }
+
+        // ✅ Check if a chat already exists between the users using the communicationId or user IDs
         chat = await IndividualMessage.findOne({
             $or: [
-                { communicationId},
-                { userId1, userId2 },
-                { userId1: userId2, userId2: userId1 }
-
+                { communicationId },
+                { $and: [{ userId1 }, { userId2 }] },
+                { $and: [{ userId1: userId2 }, { userId2: userId1 }] }
             ]
         });
 
-        // ✅ Create new message
+        // If chat doesn't exist, create a new chat
+        if (!chat) {
+            chat = new IndividualMessage({
+                communicationId,
+                userId1,
+                userId2,
+                messages: [],
+            });
+
+            await chat.save();
+            console.log("New chat created:", chat);
+        }
+
+        // ✅ Create a new message
         const newMessage = {
             messageId: uuidv4(),
             messagedUserId,
@@ -37,11 +57,11 @@ export const createMessage = async (req, res) => {
             isDeletedHard: false,
         };
 
-        // ✅ Push message to chat
+        // ✅ Push the new message to the existing chat
         chat.messages.push(newMessage);
         await chat.save();
 
-        // ✅ Emit real-time message update
+        // ✅ Emit real-time message update to the connected clients
         io.emit("receiveMessage", { ...newMessage, communicationId });
 
         res.status(200).json({ message: "Message sent successfully", chat });
@@ -50,6 +70,7 @@ export const createMessage = async (req, res) => {
         res.status(500).json({ message: "Internal Server Error" });
     }
 };
+
 
 // ✅ GET MESSAGES BY COMMUNICATION ID
 export const getMessagesByCommunicationId = async (req, res) => {
@@ -221,3 +242,44 @@ export const getGroupByCommunicationId = async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ✅ GET MESSAGES IF COMMUNICATION EXISTS
+export const getMessagesIfCommunicationExists = async (req, res) => {
+    const { userId1, userId2 } = req.params;
+
+    if (!userId1 || !userId2) {
+        return res.status(400).json({ message: "Both user IDs are required" });
+    }
+
+    try {
+        const chat = await IndividualMessage.findOne({
+            $or: [
+                { userId1, userId2 },
+                { userId1: userId2, userId2: userId1 }
+            ]
+        });
+
+        if (!chat) {
+            // Communication doesn't exist
+            return res.status(200).json({ communicationId: null, messages: [] });
+        }
+
+        return res.status(200).json({ communicationId: chat.communicationId, messages: chat.messages });
+    } catch (error) {
+        console.error("Error getting messages:", error);
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+};

@@ -181,3 +181,45 @@ export const getGroupCommunicationIds = async (req, res) => {
     return res.status(500).json({ message: 'Server error', error: error.message });
   }  
 };
+
+
+// Add Channel Communication ID
+export const addChannelCommunicationId = async (req, res) => {
+  const { userId } = req.params;
+  const { communicationId } = req.body;
+
+  try {
+    const updatedUser = await UserDetails.findOneAndUpdate(
+      { userId },
+      { $push: { channelCommunicationIds: communicationId } }, // Prevent duplicates
+      { new: true, upsert: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ message: "Channel communication ID added successfully", userDetails: updatedUser });
+  } catch (error) {
+    console.error("Error in addChannelCommunicationId:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+// Get Channel Communication IDs
+export const getChannelCommunicationIds = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await UserDetails.findOne({ userId }, 'channelCommunicationIds');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    return res.status(200).json({ channelCommunicationIds: user.channelCommunicationIds || [] });
+  } catch (error) {
+    console.error("Error in getChannelCommunicationIds:", error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
