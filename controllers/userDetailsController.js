@@ -223,3 +223,22 @@ export const getChannelCommunicationIds = async (req, res) => {
     return res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
+
+
+export const getAllUserLocations = async (req, res) => {
+  try {
+    // Fetch all user details, including userId and location
+    const users = await UserDetails.find({}, 'userId location'); // Adjust this based on your model
+
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: 'No users found' });
+    }
+
+    // Send all userIds with their respective locations
+    return res.status(200).json({ users });
+  } catch (error) {
+    console.error("Error in getAllUserLocations:", error);
+    return res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
