@@ -18,7 +18,9 @@ const io = new Server(server, {
     },
 });
 
-mongoose.connect(mongoUrl)
+mongoose.connect(mongoUrl, {
+        family: 4,
+    })
     .then(() => {
         console.log("MongoDB Connected...");
         server.listen(port, () => {
